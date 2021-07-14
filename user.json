@@ -1,0 +1,7 @@
+{
+    "client_id": "",
+    "client_secret": "",
+    "redirect_uri": "",
+    "username": "",
+    "scope": "user-read-private user-read-playback-state user-modify-playback-state"
+}
