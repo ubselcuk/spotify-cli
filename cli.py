@@ -72,6 +72,7 @@ def heeelp():
    |  github.com/ubselcuk/spotify-cli    |
    |                                     |
    ---------------------------------------
+   todo: test save saved
             ''')
 
 
@@ -143,6 +144,25 @@ if __name__ == "__main__":
         sys.argv[1] == 'p'
         ):
         start()
+
+
+    elif(
+        sys.argv[1] == 'test'
+        ):
+        test()
+
+    elif(
+        sys.argv[1] == 'save'
+        ):
+        save()
+
+    elif(
+        sys.argv[1] == 'saved'
+        ):
+        saved()
+
+
+
 
     elif((
         sys.argv[1] == 'current' and

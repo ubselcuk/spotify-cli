@@ -1,12 +1,12 @@
 import os
 import json
 import spotipy
+from datetime import datetime
 from spotipy.oauth2 import SpotifyOAuth
 
 if __name__ == "__main__":
     print('Do not run this code directly, run cli.py to use the program.')
 else:
-
 
     with open(os.path.dirname(__file__) + "/user.json", "r") as f:
         data = json.load(f)
@@ -15,13 +15,15 @@ else:
                                                    client_secret=data['client_secret'],
                                                    redirect_uri=data['redirect_uri'],
                                                    scope=data['scope'],
-                                                   cache_path = os.path.dirname(__file__) + '/.cache-' + data['username']
+                                                   cache_path=os.path.dirname(
+                                                       __file__) + '/.cache-' + data['username']
                                                    ))
 
-
-
     def next():
-        sp.next_track()
+        try:
+            sp.next_track()
+        except:
+            print('help uwu')
 
     def prev():
         sp.previous_track()
@@ -47,14 +49,14 @@ else:
             pt = sp.current_user_playing_track()
             artist = pt['item']['artists'][0]['name']
             track = pt['item']['name']
-            print('{} ~ {}'.format(artist,track))
+            print('{} ~ {}'.format(artist, track))
         else:
             print('The song is not playing right now.')
 
     def device():
         dev = sp.devices()['devices'][0]['name']
         name = sp.current_user()['display_name']
-        print('Device ~ {} | User ~ {}'.format(dev,name))
+        print('Device ~ {} | User ~ {}'.format(dev, name))
 
     def volume(x):
         if x >= 0 and x <= 100:
@@ -74,3 +76,31 @@ else:
         else:
             print('Try again by selecting one of the options.\nOptions: track, context, off')
 
+    def test():
+        pt = sp.current_user_playing_track()
+        os.system('feh ' + pt['item']['album']['images'][0]['url'])
+
+    def save():
+
+        pt = sp.current_user_playing_track()
+
+        
+        y = {"date": str(datetime.now().strftime("%m %d %Y ~ %H:%M")),
+             "track": pt['item']['name'],
+             "artist": pt['item']['artists'][0]['name']}
+     
+        with open(os.path.dirname(__file__) + "/history.json",'r+') as file:
+            file_data = json.load(file)
+
+            file_data["saved"].append(y)
+
+            file.seek(0)
+
+            json.dump(file_data, file, indent = 4)
+
+    def saved():
+        with open(os.path.dirname(__file__) + "/history.json", "r") as f:
+            data = json.load(f)
+            for numb in data['saved']:
+                print(numb['date'] + ' ~ ' + numb['track'] + ' ~ ' + numb['artist'])
+            
