@@ -47,6 +47,9 @@ def heeelp():
    | play          | if the track        |
    | start         | is stopped          |
    |-------------------------------------|
+   | l             | shows the song      |
+   | lyrics        | lyrics              |
+   |-------------------------------------|
    | cu            | shows user          |
    | current user  | information         |
    |-------------------------------------|
@@ -160,6 +163,12 @@ if __name__ == "__main__":
         sys.argv[1] == 'saved'
         ):
         saved()
+
+    elif(
+        sys.argv[1] == 'lyrics' or
+        sys.argv[1] == 'l'
+        ):
+        lyrics()
 
 
 

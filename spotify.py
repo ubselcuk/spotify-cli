@@ -1,7 +1,11 @@
-import os
 import json
-import spotipy
+import os
+import urllib.parse
+import urllib.request
+import requests
+from bs4 import BeautifulSoup
 from datetime import datetime
+import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 if __name__ == "__main__":
@@ -84,23 +88,93 @@ else:
 
         pt = sp.current_user_playing_track()
 
-        
         y = {"date": str(datetime.now().strftime("%m %d %Y ~ %H:%M")),
              "track": pt['item']['name'],
              "artist": pt['item']['artists'][0]['name']}
-     
-        with open(os.path.dirname(__file__) + "/history.json",'r+') as file:
+
+        with open(os.path.dirname(__file__) + "/history.json", 'r+') as file:
             file_data = json.load(file)
 
             file_data["saved"].append(y)
 
             file.seek(0)
 
-            json.dump(file_data, file, indent = 4)
+            json.dump(file_data, file, indent=4)
 
     def saved():
         with open(os.path.dirname(__file__) + "/history.json", "r") as f:
             data = json.load(f)
             for numb in data['saved']:
                 print(numb['date'] + ' ~ ' + numb['track'] + ' ~ ' + numb['artist'])
-            
+
+    def lyrics():
+        # api_base
+        client_access_token = "pySueg-HGk7MGO1b8SGob8GSRQw3tPW4QIyGdOHTCnYoO6tdaS63oAZQ_sXEaiFg"
+        api_base = "https://api.genius.com"
+
+        try:  # if artist returns none
+            pt = sp.current_user_playing_track()
+            artist = pt['item']['artists'][0]['name']
+            track = pt['item']['name']
+            artist_and_track = artist + track
+        except TypeError:
+            print("You need to open a song first (づ｡◕‿‿◕｡)づ ♬♪ ♪")
+            return
+
+        # search request
+        search = "/search?q="
+        query = api_base + search + urllib.parse.quote(artist_and_track)
+        request = urllib.request.Request(query)
+        request.add_header("Authorization", "Bearer {}".format(client_access_token))
+
+        # get search response
+        response = urllib.request.urlopen(request, timeout=3)
+        raw = response.read().decode(response.headers.get_content_charset())
+        data = json.loads(raw)["response"]["hits"]
+
+        # --------- VERIFY RESPONSE ---------
+        # print("SEARCHED: ", artist_and_track)
+        # print("FOUND: ", data[0]["result"]["primary_artist"]["name"], data[0]["result"]["title"])
+
+        # song request
+        try:  # if no lyrics found
+            song_api_path = data[0]["result"]["api_path"]
+        except IndexError:
+            print("No lyrics found for {} ~ {}".format(artist, track))
+            return
+
+        query = api_base + song_api_path
+        request = urllib.request.Request(query)
+        request.add_header("Authorization", "Bearer {}".format(client_access_token))
+
+        # --------- VERIFY REQUEST ---------
+        # print("API_PATH: ", song_api_path)
+        # print("QUERY: ", query)
+
+        # get song response
+        response = urllib.request.urlopen(request, timeout=3)
+        raw = response.read().decode(response.headers.get_content_charset())
+        data_song = json.loads(raw)
+
+        # song path url
+        songpath = data_song["response"]["song"]["path"]
+
+        # --------- VERIFY RESPONSE ---------
+        # print("SONG PATH: ", song_api_path)
+        # print("FOUND PATH: ", songpath)
+
+        # HTML parsing
+        base = "https://genius.com"
+        url = base + song_api_path
+        page = requests.get(url)
+        soup = BeautifulSoup(page.text, "html.parser")
+
+        [h.extract() for h in soup('script')]
+
+        try:  # if failed to get text
+            lyrics = soup.find("div", class_="lyrics").get_text()
+            print("\n\n", artist, " ~ ", track, lyrics)
+        except AttributeError:
+            print("Couldn't get lyrics, please try again (╯°□°)╯︵ ┻━┻")
+
+
